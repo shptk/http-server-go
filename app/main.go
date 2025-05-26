@@ -31,11 +31,20 @@ func main() {
 		}
 		res := ""
 		if n > 0 {
+			ok_status := "HTTP/1.1 200 OK"
 			req := string(buffer[:n])
-			if strings.Contains(req, "/echo") {
-				path := strings.Split(strings.Split(req, CRLF)[0][len("GET /echo"):], " ")[0]
-				fmt.Println("printing path: ", path)
-				res = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(path), path)
+			packet := strings.Split(req, CRLF)
+			// returns the header User-Agent as response body at /user-agent endpoint
+			if strings.Contains(req, "/user-agent") {
+				fmt.Println("raw request body:", req)
+				body := strings.SplitAfter(packet[3],"User-Agent: ")[1]
+				fmt.Println("printing path: ", body)
+				res = fmt.Sprintf("%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",ok_status ,len(body), body)
+			}else if strings.Contains(req, "/echo") {
+			// returns the path after /echo as response body
+				body := strings.Split(packet[0][len("GET /echo"):], " ")[0]
+				fmt.Println("printing path: ", body)
+				res = fmt.Sprintf("%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",ok_status ,len(body), body)
 
 			} else if strings.HasPrefix(req, "GET / HTTP/1.1") {
 				res = "HTTP/1.1 200 OK\r\n\r\n"
